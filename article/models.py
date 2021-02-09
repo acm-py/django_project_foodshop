@@ -3,6 +3,8 @@ from django.contrib.auth.models import  User
 from django.utils import timezone
 from django.urls import reverse
 from taggit.managers import TaggableManager
+from imagekit.models import ProcessedImageField
+from imagekit.processors import ResizeToFit
 # Create your models here.
 
 class ArticleColumn(models.Model):
@@ -25,6 +27,13 @@ class ArticlePost(models.Model):
     created = models.DateTimeField(default=timezone.now)
     updated = models.DateTimeField(auto_now=True)
     tags = TaggableManager(blank=True)
+    # 文章标题图
+    avatar = ProcessedImageField(
+        upload_to='article/%Y%m%d',
+        processors=[ResizeToFit(width=400)],
+        format='JPEG',
+        options={'quality': 100},
+    )
     total_views = models.PositiveIntegerField(default=0)
     column = models.ForeignKey(
         ArticleColumn,

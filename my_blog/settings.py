@@ -42,6 +42,9 @@ INSTALLED_APPS = [
     'password_reset',
     'comment',
     'taggit',
+    'ckeditor',
+    'mptt',
+    'notifications',
 ]
 
 MIDDLEWARE = [
@@ -120,13 +123,38 @@ USE_L10N = True
 
 USE_TZ = True
 
+X_FRAME_OPTIONS = 'SAMEORIGIN'
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.1/howto/static-files/
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, "static"),
-)
-STATIC_URL = '/static/'
+# ckeditor 插件设置
+CKEDITOR_CONFIGS = {
+    # django-ckeditor默认使用default配置
+    'default': {
+        # 编辑器宽度自适应
+        'width':'auto',
+        'height':'250px',
+        # tab键转换空格数
+        'tabSpaces': 4,
+        # 工具栏风格
+        'toolbar': 'Custom',
+        # 工具栏按钮
+        'toolbar_Custom': [
+            # 表情 代码块
+            ['Smiley', 'CodeSnippet'],
+            # 字体风格
+            ['Bold', 'Italic', 'Underline', 'RemoveFormat', 'Blockquote'],
+            # 字体颜色
+            ['TextColor', 'BGColor'],
+            # 链接
+            ['Link', 'Unlink'],
+            # 列表
+            ['NumberedList', 'BulletedList'],
+            # 最大化
+            ['Maximize']
+        ],
+        # 加入代码块插件
+        'extraPlugins': ','.join(['codesnippet', 'prism', 'widget', 'lineutils']),
+    }
+}
 
 # SMTP服务器，改为你的邮箱的smtp!
 EMAIL_HOST = 'smtp.qq.com'
@@ -141,5 +169,15 @@ EMAIL_USE_TLS = True
 # 默认的发件人
 DEFAULT_FROM_EMAIL = 'binga.k@qq.com'
 
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/3.1/howto/static-files/
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, "static"),
+)
+STATIC_URL = '/static/'
+
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+

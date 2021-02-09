@@ -9,6 +9,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from comment.models import Comment
 from .models import ArticleColumn
+from comment.forms import CommentForm
 # Create your views here.
 
 def article_list(request):
@@ -44,7 +45,7 @@ def article_list(request):
     page = request.GET.get('page')
     articles = paginator.get_page(page)
 
-    # 需要传递给模板（templates）的对象
+    # 需要传递给模板（templatetags）的对象
     context = {
         'articles': articles,
         'order': order,
@@ -68,13 +69,15 @@ def article_detail(request,id):
                         'markdown.extensions.toc',
                  ])
     article.body = md.convert(article.body)
+    comment_form = CommentForm()
     comments = Comment.objects.filter(article=id)
-    context = { 'article': article, 'toc': md.toc, 'comments': comments  }
+    context = { 'article': article, 'toc': md.toc, 'comments': comments, 'comment_form':comment_form  }
     return  render(request,'article/detail.html',context)
 @login_required(login_url='/userprofile/login/')
 def article_create(request):
     if request.method == "POST":
-        article_post_form = ArticlePostForm(data=request.POST)
+
+        article_post_form = ArticlePostForm(request.POST, request.FILES)
         if article_post_form.is_valid():
             new_article = article_post_form.save(commit=False)
             if request.POST['column'] != 'none':
@@ -109,12 +112,20 @@ def article_update(request,id):
     if request.method == "POST":
         article_post_form = ArticlePostForm(data=request.POST)
         if article_post_form.is_valid():
+            # 保存新写入的 title、body 数据并保存
             article.title = request.POST['title']
+            article.body = request.POST['body']
+
             if request.POST['column'] != 'none':
+                # 保存文章栏目
                 article.column = ArticleColumn.objects.get(id=request.POST['column'])
             else:
                 article.column = None
-            article.body = request.POST['body']
+
+            if request.FILES.get('avatar'):
+                article.avatar = request.FILES.get('avatar')
+
+            article.tags.set(*request.POST.get('tags').split(','), clear=True)
             article.save()
             return redirect("article:article_detail", id=id)
         else:
@@ -126,6 +137,7 @@ def article_update(request,id):
             'article': article,
             'article_post_form': article_post_form,
             'columns': columns,
+            'tags': ','.join([x for x in article.tags.names()]),
         }
 
     return render(request, 'article/update.html', context)
